@@ -1,14 +1,18 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { assets, plans } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { SyncLoader } from "react-spinners";
 
 const BuyCredit = () => {
   const { user, backendUrl, token, loadCreditsData, setShowLogin } =
     useContext(AppContext);
+
+  const [loading, setLoading] = useState(false);
+  const [loadingPlanId, setLoadingPlanId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -23,28 +27,31 @@ const BuyCredit = () => {
       receipt: order.receipt,
       handler: async (res) => {
         try {
-          
-          const {data} = await axios.post(`${backendUrl}/api/user/verify-razor`,res,{headers:{token}})
+          const { data } = await axios.post(
+            `${backendUrl}/api/user/verify-razor`,
+            res,
+            { headers: { token } }
+          );
 
-          if(data.success){
-            loadCreditsData()
-            navigate('/')
-            toast.success("Credit Added")
+          if (data.success) {
+            loadCreditsData();
+            navigate("/");
+            toast.success("Credit Added");
           }
-
         } catch (error) {
-          console.log(error.message)
-          toast.error(error.message)
+          console.log(error.message);
+          toast.error(error.message);
         }
       },
     };
 
-    const rzp = new window.Razorpay(options)
-    rzp.open()
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   const paymentRazorpay = async (planId) => {
     try {
+      setLoading(true);
       if (!user) {
         setShowLogin(true);
       }
@@ -61,6 +68,8 @@ const BuyCredit = () => {
     } catch (error) {
       console.log(error.message);
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,10 +104,18 @@ const BuyCredit = () => {
             </p>
 
             <button
-              onClick={() => paymentRazorpay(plan.id)}
+              onClick={async() => {
+                setLoadingPlanId(plan.id)
+                await paymentRazorpay(plan.id);
+                setLoadingPlanId(null)
+              }}
               className="w-full bg-gray-800 text-white mt-8 text-sm rounded-md py-2.5 min-w-52 cursor-pointer "
             >
-              {user ? "Purchase" : "Get Started"}
+              {loading && loadingPlanId === plan.id ? (
+                <SyncLoader size={7} color="#fff" />
+              ) : (
+                `${user ? "Purchase" : "Get Started"}`
+              )}
             </button>
           </div>
         ))}

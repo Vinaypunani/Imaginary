@@ -4,6 +4,7 @@ import { AppContext } from "../context/AppContext";
 import { motion } from "motion/react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { SyncLoader } from 'react-spinners'
 
 const Login = () => {
   const [state, setState] = useState("Login");
@@ -13,11 +14,13 @@ const Login = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false)
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
     try {
+      setLoading(true)
       if (state === "Login") {
         const { data } = await axios.post(`${backendUrl}/api/user/login`, {
           email,
@@ -47,8 +50,10 @@ const Login = () => {
         }
       }
     } catch (error) {
-      console.log(error.message)
-      toast.error(error.message)
+      console.log(error.message);
+      toast.error(error.message);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -101,7 +106,7 @@ const Login = () => {
           />
         </div>
 
-        <div className="border border-gray-300 px-6 py-2 flex items-center gap-2 rounded-full mt-5">
+        <div className={`border border-gray-300 px-6 py-2 flex items-center gap-2 rounded-full mt-5 ${state === "Login" ? '' : 'mb-4'}`}>
           <img className="w-6 h-6" src={assets.lock_icon} alt="" />
           <input
             onChange={(e) => setPassword(e.target.value)}
@@ -113,23 +118,27 @@ const Login = () => {
           />
         </div>
 
-        <p className="text-sm text-blue-600 my-4 cursor-pointer">
-          Forgot password?
-        </p>
+        {state === "Login" && (
+          <p className="text-sm text-blue-600 my-4 cursor-pointer">
+            Forgot password?
+          </p>
+        )}
 
-        <button className="bg-blue-600 w-full text-white py-2 rounded-full ">
-          {state === "Login" ? "Login" : "Create Account"}
+        <button className="bg-blue-600 w-full text-white py-2 rounded-full" disabled={loading ? true : false}>
+          {
+            loading ? <SyncLoader size={7} color="#fff" /> : `${state === 'Login' ? 'Login' : 'Create Account'}`
+          }
         </button>
 
         {state === "Login" ? (
-          <p onClick={() => setState("SignUp")} className="mt-5 text-center">
+          <p className="mt-5 text-center">
             Don't have an account?
-            <span className="text-blue-600 cursor-pointer">Sign Up</span>
+            <span onClick={() => setState("SignUp")} className="text-blue-600 cursor-pointer">Sign Up</span>
           </p>
         ) : (
-          <p onClick={() => setState("Login")} className="mt-5 text-center">
+          <p className="mt-5 text-center">
             Already have an account?
-            <span className="text-blue-600 cursor-pointer">Login</span>
+            <span onClick={() => setState("Login")} className="text-blue-600 cursor-pointer">Login</span>
           </p>
         )}
         <img

@@ -2,6 +2,8 @@ import React, { useContext, useState } from "react";
 import { assets } from "../assets/assets";
 import { motion } from "motion/react";
 import { AppContext } from "../context/AppContext";
+import { SyncLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const Result = () => {
   const [image, setImage] = useState(assets.sample_img_1);
@@ -9,21 +11,23 @@ const Result = () => {
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
 
-  const {generateImage} = useContext(AppContext)
+  const { generateImage } = useContext(AppContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    setLoading(true)
+    setLoading(true);
 
-    if(input){
-      const image = await generateImage(input)
+    if (input === '') {
+      toast.error("please enter prompt")
+    }else{
+      const image = await generateImage(input);
 
-      if(image){
-        setIsImageLoaded(true)
-        setImage(image)
+      if (image) {
+        setIsImageLoaded(true);
+        setImage(image);
       }
-      setLoading(false)
     }
+    setLoading(false);
   };
 
   return (
@@ -31,7 +35,7 @@ const Result = () => {
       initial={{ opacity: 0.2, y: 70 }}
       transition={{ duration: 1 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }} 
+      viewport={{ once: true }}
       onSubmit={(e) => onSubmitHandler(e)}
       className="flex flex-col min-h-[90vh] justify-center items-center"
     >
@@ -59,10 +63,11 @@ const Result = () => {
             className="flex-1 bg-transparent outline-none ml-8 max-sm:w-20"
           />
           <button
+            disabled={loading}
             type="submit"
             className="bg-zinc-900 px-10 sm:px-16 py-3 rounded-full text-white cursor-pointer"
           >
-            Generate
+            {loading ? <SyncLoader size={7} color="#fff" /> : "Generate"}
           </button>
         </div>
       )}
